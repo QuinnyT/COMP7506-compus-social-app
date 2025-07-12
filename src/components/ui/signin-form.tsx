@@ -9,22 +9,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 
-// 校区数据
+// Campus data
 const CAMPUS_OPTIONS = [
-  { value: 'main', label: '主校区' },
-  { value: 'north', label: '北校区' },
-  { value: 'south', label: '南校区' },
-  { value: 'east', label: '东校区' },
-  { value: 'west', label: '西校区' },
+  { value: 'hku', label: 'The University of Hong Kong (HKU)' },
+  { value: 'cuhk', label: 'The Chinese University of Hong Kong' },
+  { value: 'ust', label: 'The Hong Kong University of Science and Technology' },
+  { value: 'polyu', label: 'The Hong Kong Polytechnic University' },
+  { value: 'cityu', label: 'City University of Hong Kong' },
 ];
 
-// 登录方式枚举
+// Login method enum
 enum LoginMethod {
   PHONE = 'phone',
   EMAIL = 'email',
 }
 
-// 登录步骤枚举
+// Login step enum
 enum LoginStep {
   INPUT_INFO = 'input_info',
   VERIFY_CODE = 'verify_code',
@@ -35,14 +35,14 @@ const SigninForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // 状态管理
+  // State management
   const [loginMethod, setLoginMethod] = useState<LoginMethod>(LoginMethod.PHONE);
   const [currentStep, setCurrentStep] = useState<LoginStep>(LoginStep.INPUT_INFO);
   const [agreedToTerms, setAgreedToTerms] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   
-  // 表单数据
+  // Form data
   const [formData, setFormData] = useState({
     phone: '',
     email: '',
@@ -52,7 +52,7 @@ const SigninForm = () => {
     campus: '',
   });
 
-  // 处理输入变化
+  // Handle input changes
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -60,12 +60,12 @@ const SigninForm = () => {
     }));
   };
 
-  // 发送验证码
+  // Send verification code
   const handleSendCode = async () => {
     if (!agreedToTerms) {
       toast({
-        title: "请先同意服务条款",
-        description: "请勾选服务条款后再继续",
+        title: "Please agree to terms first",
+        description: "Please check the terms of service before continuing",
         variant: "destructive",
       });
       return;
@@ -75,18 +75,18 @@ const SigninForm = () => {
     
     if (!contact) {
       toast({
-        title: "请输入联系信息",
-        description: loginMethod === LoginMethod.PHONE ? "请输入手机号" : "请输入邮箱",
+        title: "Please enter contact information",
+        description: loginMethod === LoginMethod.PHONE ? "Please enter phone number" : "Please enter email",
         variant: "destructive",
       });
       return;
     }
 
-    // 验证格式
+    // Validate format
     if (loginMethod === LoginMethod.PHONE && !/^1[3-9]\d{9}$/.test(contact)) {
       toast({
-        title: "手机号格式错误",
-        description: "请输入正确的11位手机号",
+        title: "Invalid phone number format",
+        description: "Please enter a valid 11-digit phone number",
         variant: "destructive",
       });
       return;
@@ -94,8 +94,8 @@ const SigninForm = () => {
 
     if (loginMethod === LoginMethod.EMAIL && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) {
       toast({
-        title: "邮箱格式错误",
-        description: "请输入正确的邮箱地址",
+        title: "Invalid email format",
+        description: "Please enter a valid email address",
         variant: "destructive",
       });
       return;
@@ -104,12 +104,12 @@ const SigninForm = () => {
     setIsLoading(true);
     
     try {
-      // 模拟发送验证码
+      // Simulate sending verification code
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
-        title: "验证码已发送",
-        description: `验证码已发送到${loginMethod === LoginMethod.PHONE ? '手机' : '邮箱'}`,
+        title: "Verification code sent",
+        description: `Code sent to your ${loginMethod === LoginMethod.PHONE ? 'phone' : 'email'}`,
       });
       
       setCountdown(60);
@@ -126,8 +126,8 @@ const SigninForm = () => {
       setCurrentStep(LoginStep.VERIFY_CODE);
     } catch (error) {
       toast({
-        title: "发送失败",
-        description: "验证码发送失败，请重试",
+        title: "Send failed",
+        description: "Failed to send verification code, please try again",
         variant: "destructive",
       });
     } finally {
@@ -135,12 +135,12 @@ const SigninForm = () => {
     }
   };
 
-  // 验证验证码
+  // Verify verification code
   const handleVerifyCode = async () => {
     if (!formData.verificationCode) {
       toast({
-        title: "请输入验证码",
-        description: "请输入收到的验证码",
+        title: "Please enter verification code",
+        description: "Please enter the code you received",
         variant: "destructive",
       });
       return;
@@ -149,26 +149,26 @@ const SigninForm = () => {
     setIsLoading(true);
     
     try {
-      // 模拟验证码验证
+      // Simulate verification code validation
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 模拟首次登录检查
-      const isFirstLogin = Math.random() > 0.5; // 随机模拟是否首次登录
+      // Simulate first login check
+      const isFirstLogin = Math.random() > 0.5; // Randomly simulate first login
       
       if (isFirstLogin) {
         setCurrentStep(LoginStep.FIRST_LOGIN);
       } else {
-        // 直接登录成功
+        // Direct login success
         toast({
-          title: "登录成功",
-          description: "欢迎回来！",
+          title: "Login successful",
+          description: "Welcome back!",
         });
         navigate('/');
       }
     } catch (error) {
       toast({
-        title: "验证失败",
-        description: "验证码错误，请重试",
+        title: "Verification failed",
+        description: "Incorrect verification code, please try again",
         variant: "destructive",
       });
     } finally {
@@ -176,12 +176,12 @@ const SigninForm = () => {
     }
   };
 
-  // 完成首次登录设置
+  // Complete first login setup
   const handleCompleteFirstLogin = async () => {
     if (!formData.nickname || !formData.campus) {
       toast({
-        title: "请完善信息",
-        description: "请填写昵称和选择校区",
+        title: "Please complete information",
+        description: "Please fill in nickname and select campus",
         variant: "destructive",
       });
       return;
@@ -190,19 +190,19 @@ const SigninForm = () => {
     setIsLoading(true);
     
     try {
-      // 模拟保存用户信息
+      // Simulate saving user information
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
-        title: "设置完成",
-        description: "欢迎加入校园社交！",
+        title: "Setup completed",
+        description: "Welcome to campus social!",
       });
       
       navigate('/');
     } catch (error) {
       toast({
-        title: "设置失败",
-        description: "请重试",
+        title: "Setup failed",
+        description: "Please try again",
         variant: "destructive",
       });
     } finally {
@@ -210,7 +210,7 @@ const SigninForm = () => {
     }
   };
 
-  // 返回上一步
+  // Go back to previous step
   const handleBack = () => {
     if (currentStep === LoginStep.VERIFY_CODE) {
       setCurrentStep(LoginStep.INPUT_INFO);
@@ -220,7 +220,7 @@ const SigninForm = () => {
     }
   };
 
-  // 处理头像上传
+  // Handle avatar upload
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -240,43 +240,43 @@ const SigninForm = () => {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            校园社交
+            Campus Social
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            连接校园，分享生活
+            Connect campus, share life
           </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-center">
-              {currentStep === LoginStep.INPUT_INFO && "登录"}
-              {currentStep === LoginStep.VERIFY_CODE && "验证码验证"}
-              {currentStep === LoginStep.FIRST_LOGIN && "完善个人信息"}
+              {currentStep === LoginStep.INPUT_INFO && "Login"}
+              {currentStep === LoginStep.VERIFY_CODE && "Verify Code"}
+              {currentStep === LoginStep.FIRST_LOGIN && "Complete Profile"}
             </CardTitle>
             <CardDescription className="text-center">
-              {currentStep === LoginStep.INPUT_INFO && "选择登录方式"}
-              {currentStep === LoginStep.VERIFY_CODE && "请输入收到的验证码"}
-              {currentStep === LoginStep.FIRST_LOGIN && "请完善您的个人信息"}
+              {currentStep === LoginStep.INPUT_INFO && "Choose login method"}
+              {currentStep === LoginStep.VERIFY_CODE && "Enter the verification code you received"}
+              {currentStep === LoginStep.FIRST_LOGIN && "Please complete your profile information"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* 输入信息步骤 */}
+            {/* Input information step */}
             {currentStep === LoginStep.INPUT_INFO && (
               <>
                 <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as LoginMethod)}>
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value={LoginMethod.PHONE}>手机号登录</TabsTrigger>
-                    <TabsTrigger value={LoginMethod.EMAIL}>邮箱登录</TabsTrigger>
+                    <TabsTrigger value={LoginMethod.PHONE}>Phone Login</TabsTrigger>
+                    <TabsTrigger value={LoginMethod.EMAIL}>Email Login</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value={LoginMethod.PHONE} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">手机号</Label>
+                      <Label htmlFor="phone">Phone Number</Label>
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="请输入手机号"
+                        placeholder="Enter your phone number"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                       />
@@ -285,11 +285,11 @@ const SigninForm = () => {
                   
                   <TabsContent value={LoginMethod.EMAIL} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">学校邮箱</Label>
+                      <Label htmlFor="email">School Email</Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="请输入学校邮箱"
+                        placeholder="Enter your school email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                       />
@@ -304,9 +304,9 @@ const SigninForm = () => {
                     onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
                   />
                   <Label htmlFor="terms" className="text-sm">
-                    我已阅读并同意
+                    I have read and agree to the
                     <a href="#" className="text-blue-600 hover:underline">
-                      服务条款
+                      Terms of Service
                     </a>
                   </Label>
                 </div>
@@ -316,18 +316,18 @@ const SigninForm = () => {
                   disabled={isLoading || !agreedToTerms}
                   className="w-full"
                 >
-                  {isLoading ? "发送中..." : "发送验证码"}
+                  {isLoading ? "Sending..." : "Send Verification Code"}
                 </Button>
               </>
             )}
 
-            {/* 验证码验证步骤 */}
+            {/* Verification code step */}
             {currentStep === LoginStep.VERIFY_CODE && (
               <>
                 <div className="space-y-4">
                   <div className="text-center">
                     <p className="text-sm text-gray-600">
-                      验证码已发送到
+                      Verification code sent to
                       <span className="font-medium">
                         {loginMethod === LoginMethod.PHONE ? formData.phone : formData.email}
                       </span>
@@ -335,11 +335,11 @@ const SigninForm = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="verificationCode">验证码</Label>
+                    <Label htmlFor="verificationCode">Verification Code</Label>
                     <Input
                       id="verificationCode"
                       type="text"
-                      placeholder="请输入验证码"
+                      placeholder="Enter verification code"
                       value={formData.verificationCode}
                       onChange={(e) => handleInputChange('verificationCode', e.target.value)}
                       maxLength={6}
@@ -353,36 +353,36 @@ const SigninForm = () => {
                     onClick={handleBack}
                     className="flex-1"
                   >
-                    返回
+                    Back
                   </Button>
                   <Button
                     onClick={handleVerifyCode}
                     disabled={isLoading || !formData.verificationCode}
                     className="flex-1"
                   >
-                    {isLoading ? "验证中..." : "验证"}
+                    {isLoading ? "Verifying..." : "Verify"}
                   </Button>
                 </div>
 
                 {countdown > 0 && (
                   <p className="text-center text-sm text-gray-500">
-                    {countdown}秒后可重新发送
+                    Resend available in {countdown} seconds
                   </p>
                 )}
               </>
             )}
 
-            {/* 首次登录设置步骤 */}
+            {/* First login setup step */}
             {currentStep === LoginStep.FIRST_LOGIN && (
               <>
                 <div className="space-y-4">
                   <div className="flex flex-col items-center space-y-4">
-                    <Label htmlFor="avatar">头像</Label>
+                    <Label htmlFor="avatar">Avatar</Label>
                     <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-gray-300">
                       {formData.avatar ? (
                         <img 
                           src={formData.avatar} 
-                          alt="头像" 
+                          alt="Avatar" 
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -403,21 +403,21 @@ const SigninForm = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="nickname">昵称</Label>
+                    <Label htmlFor="nickname">Nickname</Label>
                     <Input
                       id="nickname"
                       type="text"
-                      placeholder="请输入昵称"
+                      placeholder="Enter your nickname"
                       value={formData.nickname}
                       onChange={(e) => handleInputChange('nickname', e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="campus">选择校区</Label>
+                    <Label htmlFor="campus">Select Campus</Label>
                     <Select value={formData.campus} onValueChange={(value) => handleInputChange('campus', value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="请选择校区" />
+                        <SelectValue placeholder="Please select campus" />
                       </SelectTrigger>
                       <SelectContent>
                         {CAMPUS_OPTIONS.map((campus) => (
@@ -436,14 +436,14 @@ const SigninForm = () => {
                     onClick={handleBack}
                     className="flex-1"
                   >
-                    返回
+                    Back
                   </Button>
                   <Button
                     onClick={handleCompleteFirstLogin}
                     disabled={isLoading || !formData.nickname || !formData.campus}
                     className="flex-1"
                   >
-                    {isLoading ? "保存中..." : "完成设置"}
+                    {isLoading ? "Saving..." : "Complete Setup"}
                   </Button>
                 </div>
               </>
