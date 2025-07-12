@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { chats } from '@/constant/chat';
 import Chatbox from '@/components/pages/Chat/Chatbox';
 

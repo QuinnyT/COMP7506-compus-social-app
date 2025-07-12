@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { messages, Message } from '@/constant/messages';
 import { chats } from '@/constant/chat';
 
@@ -10,7 +10,7 @@ interface ChatboxProps {
 const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
   const [messageText, setMessageText] = useState('');
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
+  const [isTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

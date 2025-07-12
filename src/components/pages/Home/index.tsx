@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Publish from './Publish';
 import PostDetail from './PostDetail';
 import { allPosts } from '@/constant/post';
