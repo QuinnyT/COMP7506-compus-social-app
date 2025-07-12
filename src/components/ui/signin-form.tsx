@@ -153,18 +153,20 @@ const SigninForm = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Simulate first login check
-      const isFirstLogin = Math.random() > 0.5; // Randomly simulate first login
+      // const isFirstLogin = Math.random() > 0.5; // Randomly simulate first login
       
-      if (isFirstLogin) {
-        setCurrentStep(LoginStep.FIRST_LOGIN);
-      } else {
-        // Direct login success
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        navigate('/');
-      }
+      // if (isFirstLogin) {
+      //   setCurrentStep(LoginStep.FIRST_LOGIN);
+      // } else {
+      //   // Direct login success
+      //   toast({
+      //     title: "Login successful",
+      //     description: "Welcome back!",
+      //   });
+      //   navigate('/');
+      // }
+      setCurrentStep(LoginStep.FIRST_LOGIN);
+
     } catch (error) {
       toast({
         title: "Verification failed",
