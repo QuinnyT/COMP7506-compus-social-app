@@ -21,6 +21,7 @@ const Profile = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const currentUserId = 'current-user';
   useEffect(() => {
+    console.log('favoriteIds', favoriteIds);
     const saved = localStorage.getItem('all_posts');
     setPosts(saved ? JSON.parse(saved) : initialPosts);
   }, []);

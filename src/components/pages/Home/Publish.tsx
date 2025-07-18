@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L, { Icon } from 'leaflet';
+import { Icon } from 'leaflet';
 
 interface PublishProps {
   isOpen: boolean;

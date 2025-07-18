@@ -91,9 +91,9 @@ const Home = () => {
   };
 
   // 导出收藏的帖子数据供Profile使用
-  const getFavoritePosts = (allPosts: any[], favoriteIds: string[]) => {
-    return allPosts.filter(post => favoriteIds.includes(post.id));
-  };
+  // const getFavoritePosts = (allPosts: any[], favoriteIds: string[]) => {
+  //   return allPosts.filter(post => favoriteIds.includes(post.id));
+  // };
 
   // 发布后添加新post
   const handlePublish = (newPost: any) => {
@@ -184,15 +184,15 @@ const Home = () => {
     );
   };
 
-  const renderPostCard = (post: any) => {
-    return (
-      <PostCard
-        post={post}
-        isFavorited={favoriteIds.includes(post.id)}
-        onToggleFavorite={() => handleToggleFavorite(post.id)}
-      />
-    );
-  };
+  // const renderPostCard = (post: any) => {
+  //   return (
+  //     <PostCard
+  //       post={post}
+  //       isFavorited={favoriteIds.includes(post.id)}
+  //       onToggleFavorite={() => handleToggleFavorite(post.id)}
+  //     />
+  //   );
+  // };
 
   if (showPostDetail) {
     return (
