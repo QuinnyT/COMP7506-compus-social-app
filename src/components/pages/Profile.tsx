@@ -1,7 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getFavoritePosts } from './Home/index';
+import { allPosts as initialPosts } from '@/constant/post';
 
 const Profile = () => {
   const [showSettings, setShowSettings] = useState(false);
+  // 新增：收藏tab
+  const [favoriteTab, setFavoriteTab] = useState<'posts' | 'marketplace' | 'events'>('posts');
+  // 动态获取收藏的帖子
+  const FAVORITE_KEY = 'favorite_post_ids';
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [favoritePosts, setFavoritePosts] = useState<any[]>([]);
+  // 每次tab切换或页面渲染时刷新收藏
+  useEffect(() => {
+    const saved = localStorage.getItem(FAVORITE_KEY);
+    const ids = saved ? JSON.parse(saved) : [];
+    setFavoriteIds(ids);
+    setFavoritePosts(getFavoritePosts(initialPosts, ids));
+  }, [favoriteTab]);
+  // 新增：动态获取当前用户发布的帖子数量
+  const [posts, setPosts] = useState<any[]>([]);
+  const currentUserId = 'current-user';
+  useEffect(() => {
+    const saved = localStorage.getItem('all_posts');
+    setPosts(saved ? JSON.parse(saved) : initialPosts);
+  }, []);
+  const myPostsCount = posts.filter(post => post.authorId === currentUserId).length;
+  const favoriteGoods = [{ id: 'g1', title: 'Book for Sale', type: 'marketplace' }];
+  const favoriteEvents = [{ id: 'e1', title: 'Math Meetup', type: 'event' }];
 
   return (
     <div className="flex-1 overflow-y-auto bg-background">
@@ -27,17 +52,17 @@ const Profile = () => {
           
           <div className="flex items-center justify-around border-t border-border pt-4">
             <div className="text-center">
-              <p className="text-lg font-semibold text-foreground">42</p>
+              <p className="text-lg font-semibold text-foreground">{myPostsCount}</p>
               <p className="text-xs text-muted-foreground">Posts</p>
             </div>
-            <div className="text-center">
+            {/* <div className="text-center">
               <p className="text-lg font-semibold text-foreground">128</p>
               <p className="text-xs text-muted-foreground">Followers</p>
             </div>
             <div className="text-center">
               <p className="text-lg font-semibold text-foreground">56</p>
               <p className="text-xs text-muted-foreground">Following</p>
-            </div>
+            </div> */}
           </div>
         </div>
         
@@ -62,6 +87,53 @@ const Profile = () => {
                 <span className="text-foreground">My Favorites</span>
               </div>
               <span className="text-muted-foreground">{'>'}</span>
+            </div>
+            {/* 收藏tab切换 */}
+            <div className="flex gap-2 mt-4">
+              <button
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${favoriteTab === 'events' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setFavoriteTab('events')}
+              >
+                Events
+              </button>
+              <button
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${favoriteTab === 'posts' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setFavoriteTab('posts')}
+              >
+                Posts
+              </button>
+              <button
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${favoriteTab === 'marketplace' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setFavoriteTab('marketplace')}
+              >
+                Goods
+              </button>
+            </div>
+            {/* 收藏内容展示 */}
+            <div className="mt-4">
+              {favoriteTab === 'posts' && (
+                <ul>
+                  {favoritePosts.length === 0 ? (
+                    <li className="text-muted-foreground py-2">No favorite posts yet.</li>
+                  ) : favoritePosts.map((item: { id: string; title: string }) => (
+                    <li key={item.id} className="py-2 border-b border-border last:border-0">{item.title}</li>
+                  ))}
+                </ul>
+              )}
+              {favoriteTab === 'marketplace' && (
+                <ul>
+                  {favoriteGoods.map(item => (
+                    <li key={item.id} className="py-2 border-b border-border last:border-0">{item.title}</li>
+                  ))}
+                </ul>
+              )}
+              {favoriteTab === 'events' && (
+                <ul>
+                  {favoriteEvents.map(item => (
+                    <li key={item.id} className="py-2 border-b border-border last:border-0">{item.title}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
           

@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { messages, Message } from '@/constant/messages';
 import { chats } from '@/constant/chat';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 interface ChatboxProps {
-  chatId: string;
-  onBack: () => void;
+  chatId?: string;
+  onBack?: () => void;
 }
 
-const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
+const Chatbox: React.FC<ChatboxProps> = ({ chatId: propChatId, onBack }) => {
+  const navigate = useNavigate();
+  const params = useParams();
+  const location = useLocation();
+  const chatId = (propChatId || params.userId)?.toString();
   const [messageText, setMessageText] = useState('');
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [isTyping] = useState(false);
@@ -15,8 +20,24 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 获取聊天对象信息
-  const chatInfo = chats.find(chat => chat.id.toString() === chatId);
-  const chatKey = chatInfo?.name.toLowerCase().replace(' ', '-') || '';
+  let chatInfo = chats.find(chat => String(chat.id) === String(chatId));
+  // 如果chats中没有，尝试用userId渲染临时会话
+  if (!chatInfo && chatId) {
+    chatInfo = {
+      id: chatId as any,
+      name: chatId,
+      avatar: chatId.slice(0, 2).toUpperCase(),
+      lastMessage: '',
+      timestamp: new Date().toISOString(),
+      unread: false,
+      unreadCount: 0,
+      type: 'private',
+      members: [],
+    };
+  }
+  const isGroup = chatInfo?.type === 'group';
+  const groupMembers = isGroup && chatInfo && chatInfo.members ? chatInfo.members : [];
+  const chatKey = isGroup ? 'study-group' : (chatInfo?.name.toLowerCase().replace(' ', '-') || '');
   
   // 创建聊天键名映射
   const chatKeyMap: Record<string, string> = {
@@ -34,13 +55,13 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
 
   // 模拟实时消息
   useEffect(() => {
-    // 加载初始消息
+    // 加载初始消息（无则空白）
     const initialMessages = messages[actualChatKey] || [];
     setChatMessages(initialMessages);
 
     // 模拟实时消息接收
     const interval = setInterval(() => {
-      if (Math.random() < 0.1) { // 10% 概率收到新消息
+      if (messages[actualChatKey] && Math.random() < 0.1) { // 仅有历史消息的对话才模拟新消息
         const newMessage: Message = {
           id: Date.now().toString(),
           senderId: actualChatKey,
@@ -56,8 +77,7 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
         };
         setChatMessages(prev => [...prev, newMessage]);
       }
-    }, 5000); // 每5秒检查一次
-
+    }, 5000);
     return () => clearInterval(interval);
   }, [actualChatKey]);
 
@@ -139,9 +159,22 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
     fileInputRef.current?.click();
   };
 
+  // 群聊成员列表
+  const renderGroupMembers = () => (
+    <div className="flex flex-wrap gap-2 mb-2">
+      {groupMembers.map((member: any) => (
+        <div key={member.id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs">
+          <span>{member.avatar}</span>
+          <span>{member.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   const renderMessage = (message: Message) => {
     const isOwnMessage = message.senderId === 'current-user';
-    
+    // 查找发送者信息
+    const sender = isGroup ? groupMembers.find((m: any) => m.id === message.senderId) : chatInfo;
     return (
       <div
         key={message.id}
@@ -149,8 +182,11 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
       >
         <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}>
           {!isOwnMessage && (
-            <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center mb-1">
-              <span className="text-xs font-medium">{chatInfo?.avatar}</span>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                <span className="text-xs font-medium">{sender?.avatar}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{sender?.name}</span>
             </div>
           )}
           <div
@@ -195,7 +231,17 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button 
-            onClick={onBack}
+            onClick={() => {
+              if (onBack) {
+                onBack();
+              } else if (location.state && (location.state as any).fromChat) {
+                navigate('/chat');
+              } else if (location.state && (location.state as any).fromHome) {
+                navigate('/');
+              } else {
+                window.history.length > 1 ? window.history.back() : navigate('/chat');
+              }
+            }}
             className="p-2 hover:bg-muted rounded-lg transition-colors"
           >
             <span className="text-lg">←</span>
@@ -204,12 +250,13 @@ const Chatbox: React.FC<ChatboxProps> = ({ chatId, onBack }) => {
             <span className="text-sm font-medium">{chatInfo.avatar}</span>
           </div>
           <div className="flex-1">
-            <h2 className="font-semibold text-foreground">{chatInfo.name}</h2>
+            <h2 className="font-semibold text-foreground">{chatInfo.name}{isGroup && ' (Group)'}</h2>
             <p className="text-xs text-muted-foreground">
               {isTyping ? 'Typing...' : 'Online'}
             </p>
           </div>
         </div>
+        {isGroup && renderGroupMembers()}
       </div>
 
       {/* Messages */}

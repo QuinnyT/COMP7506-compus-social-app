@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface PostDetailProps {
   post: any;
@@ -8,10 +9,10 @@ interface PostDetailProps {
 }
 
 const PostDetail: React.FC<PostDetailProps> = ({ post, isOpen, onClose, currentUserId }) => {
+  const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
-
   // Mock comments data
   const [comments, setComments] = useState([
     {
@@ -60,6 +61,15 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, isOpen, onClose, currentU
       ]
     }
   ]);
+  // 活动报名功能
+  const [participants, setParticipants] = useState<{ id: string; name: string }[]>(post.participants || []);
+  const isJoined = !!currentUserId && participants.some(p => p.id === currentUserId);
+  const handleJoin = () => {
+    if (!isJoined && currentUserId) {
+      setParticipants(prev => [...prev, { id: currentUserId, name: 'You' }]);
+    }
+  };
+  const onlineSignup = post.onlineSignup !== false; // 默认为true，除非明确为false
 
   const isOwnPost = currentUserId === post?.authorId;
 
@@ -123,6 +133,27 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, isOpen, onClose, currentU
     ));
   };
 
+  // 聊天功能：添加到聊天列表并跳转
+  const handleMessage = () => {
+    if (!post.authorId) return;
+    // 读取现有聊天列表
+    const saved = localStorage.getItem('chat_list');
+    let chatList = saved ? JSON.parse(saved) : [];
+    // 检查是否已存在
+    if (!chatList.some((c: any) => c.id === post.authorId)) {
+      chatList.unshift({
+        id: post.authorId,
+        name: post.author,
+        avatar: post.avatar,
+        lastMessage: '',
+        timestamp: new Date().toISOString(),
+        unread: false,
+      });
+      localStorage.setItem('chat_list', JSON.stringify(chatList));
+    }
+    navigate(`/chat/${post.authorId}`, { state: { fromHome: true } });
+  };
+
   if (!isOpen || !post) return null;
 
   return (
@@ -153,7 +184,10 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, isOpen, onClose, currentU
               <p className="text-xs text-muted-foreground">{post.timestamp}</p>
             </div>
             {!isOwnPost && (
-              <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+              <button
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                onClick={handleMessage}
+              >
                 Message
               </button>
             )}
@@ -179,8 +213,30 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, isOpen, onClose, currentU
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-primary">👥</span>
-                  <span className="text-foreground">{post.capacity}</span>
+                  <span className="text-foreground">{participants.length} / {post.capacity || '-'} </span>
+                  <span className="text-foreground">Missing: {post.capacity ? Math.max(0, Number(post.capacity) - participants.length) : '-'}</span>
                 </div>
+                {/* 参与者列表和报名按钮仅在onlineSignup为true时显示 */}
+                {onlineSignup && (
+                  <>
+                    {participants.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {participants.map(p => (
+                          <span key={p.id} className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">{p.name}</span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-3">
+                      <button
+                        onClick={handleJoin}
+                        disabled={isJoined}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isJoined ? 'Joined' : 'Join Event'}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

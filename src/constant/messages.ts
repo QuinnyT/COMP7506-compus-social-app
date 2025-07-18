@@ -339,4 +339,45 @@ export const messages: Record<string, Message[]> = {
       isRead: true,
     },
   ],
+
+  // Study Group 群聊
+  'study-group': [
+    {
+      id: '1',
+      senderId: 'u1',
+      receiverId: 'group:study-group',
+      content: 'Hi everyone, let’s review chapter 3 tonight!',
+      type: 'text',
+      timestamp: '10:00',
+      isRead: true,
+    },
+    {
+      id: '2',
+      senderId: 'u2',
+      receiverId: 'group:study-group',
+      content: 'Sounds good! I’ll bring my notes.',
+      type: 'text',
+      timestamp: '10:01',
+      isRead: true,
+    },
+    {
+      id: '3',
+      senderId: 'u3',
+      receiverId: 'group:study-group',
+      content: 'Here is the summary from last time.',
+      type: 'image',
+      imageUrl: 'https://via.placeholder.com/150',
+      timestamp: '10:02',
+      isRead: true,
+    },
+    {
+      id: '4',
+      senderId: 'current-user',
+      receiverId: 'group:study-group',
+      content: 'Thanks everyone! See you at 8pm.',
+      type: 'text',
+      timestamp: '10:03',
+      isRead: true,
+    },
+  ],
 };

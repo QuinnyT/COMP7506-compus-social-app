@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L, { Icon } from 'leaflet';
 
 interface PublishProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultType?: string;
+  onPublish?: (newPost: any) => void;
 }
 
-const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
+const Publish: React.FC<PublishProps> = ({ isOpen, onClose, defaultType, onPublish }) => {
   const [publishType, setPublishType] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,12 +22,28 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
     price: '',
     condition: 'new',
     images: [] as string[],
+    tradeMethod: '面交', // 新增字段，默认面交
+    courseCode: '',      // 新增字段
+    locationLatLng: null as { lat: number; lng: number } | null, // 新增字段
+    organizerType: 'personal', // 新增：发起者类型
+    eventCategory: 'study-group', // 新增：活动类型
+    participants: [] as { id: string; name: string }[], // 新增：参与者信息
+    onlineSignup: false, // 新增：线上报名
   });
 
   const publishTypes = [
     { id: 'share', label: 'Share', icon: '📝', description: 'Share your thoughts and experiences' },
     { id: 'event', label: 'Organize Event', icon: '🎉', description: 'Create and organize events' },
     { id: 'marketplace', label: 'Sell Item', icon: '💰', description: 'Sell your items to campus community' },
+  ];
+
+  // 活动类型选项
+  const eventCategories = [
+    { value: 'study-group', label: 'Study Group' },
+    { value: 'self-study', label: 'Self-study Group' },
+    { value: 'leisure', label: 'Leisure & Entertainment' },
+    { value: 'food', label: 'Food & Restaurant' },
+    { value: 'sports', label: 'Sports & Travel' },
   ];
 
   const handlePublishTypeSelect = (type: string) => {
@@ -42,13 +63,41 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
       price: '',
       condition: 'new',
       images: [],
+      tradeMethod: '面交',
+      courseCode: '',
+      locationLatLng: null,
+      organizerType: 'personal',
+      eventCategory: 'study-group',
+      participants: [],
+      onlineSignup: false,
     });
     onClose();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Publishing:', { type: publishType, ...formData });
+    const currentUserId = 'current-user';
+    let participants = formData.participants;
+    if ((publishType === 'events' || publishType === 'event') && formData.onlineSignup && participants.length === 0) {
+      participants = [{ id: currentUserId, name: 'You' }];
+    }
+    let type = publishType;
+    if (publishType === 'events') type = 'event';
+    if (publishType === 'marketplace') type = 'marketplace';
+    if (publishType === 'share') type = 'share';
+    const newPost = {
+      id: Date.now(),
+      type,
+      ...formData,
+      participants,
+      timestamp: new Date().toISOString(),
+      author: 'Current User',
+      authorId: currentUserId,
+      avatar: 'CU',
+      likes: 0,
+      comments: 0,
+    };
+    if (onPublish) onPublish(newPost);
     handleClose();
   };
 
@@ -70,8 +119,43 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
     }));
   };
 
+  const handleMapClick = (e: any) => {
+    setFormData(prev => ({
+      ...prev,
+      locationLatLng: { lat: e.latlng.lat, lng: e.latlng.lng }
+    }));
+  };
+
+  function LocationSelector() {
+    useMapEvents({
+      click: handleMapClick
+    });
+    return null;
+  }
+
+  const markerIcon = new Icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    shadowSize: [41, 41]
+  });
+
+  // 如果有defaultType，直接渲染对应表单
+  useEffect(() => {
+    if (isOpen && defaultType) {
+      setPublishType(defaultType);
+      setShowForm(true);
+    } else if (!isOpen) {
+      setPublishType('');
+      setShowForm(false);
+    }
+  }, [isOpen, defaultType]);
+
   if (!isOpen) return null;
 
+  // 没有defaultType时才显示类型选择
   const renderPublishTypeSelector = () => (
     <div className="bg-card rounded-lg w-full w-[80vw] max-h-[80vh] p-6">
       <div className="flex items-center justify-between mb-4">
@@ -166,6 +250,76 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
 
   const renderEventForm = () => (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* 发起者类型 */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Organizer Type
+        </label>
+        <select
+          value={formData.organizerType}
+          onChange={e => setFormData({ ...formData, organizerType: e.target.value })}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground"
+        >
+          <option value="personal">Personal Account</option>
+          <option value="organization">Student Organization</option>
+        </select>
+      </div>
+      {/* 活动类型 */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Event Category
+        </label>
+        <select
+          value={formData.eventCategory}
+          onChange={e => setFormData({ ...formData, eventCategory: e.target.value })}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground"
+        >
+          {eventCategories.map(cat => (
+            <option key={cat.value} value={cat.value}>{cat.label}</option>
+          ))}
+        </select>
+      </div>
+      {/* 课程代码关联 */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Course Code (optional)
+        </label>
+        <input
+          type="text"
+          value={formData.courseCode}
+          onChange={e => setFormData({ ...formData, courseCode: e.target.value })}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground"
+          placeholder="e.g. COMP7506"
+        />
+      </div>
+      {/* 线上报名 */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={formData.onlineSignup}
+          onChange={e => setFormData({ ...formData, onlineSignup: e.target.checked })}
+          id="online-signup"
+        />
+        <label htmlFor="online-signup" className="text-sm text-foreground">Enable Online Signup</label>
+      </div>
+      {/* 只有勾选线上报名时才显示实时状态设置 */}
+      {formData.onlineSignup && (
+        <div className="bg-muted/50 rounded-lg p-3">
+          <div className="flex items-center gap-4 mb-2">
+            <span className="text-primary">👥</span>
+            <span className="text-foreground text-sm">Participants: {formData.participants.length} / {formData.capacity || '-'}</span>
+            <span className="text-foreground text-sm">Missing: {formData.capacity ? Math.max(0, Number(formData.capacity) - formData.participants.length) : '-'}</span>
+          </div>
+          {formData.participants.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.participants.map(p => (
+                <span key={p.id} className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">{p.name}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {/* 其余表单项保持原有 */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Event Title
@@ -179,7 +333,6 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
           required
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Description
@@ -193,7 +346,6 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
           required
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Date & Time
@@ -206,7 +358,6 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
           required
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Location
@@ -220,7 +371,6 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
           required
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Capacity
@@ -281,23 +431,65 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
         />
       </div>
       
+      {/* 新增：交易方式 */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
-          Condition
+          Trade Method
         </label>
         <select
-          value={formData.condition}
-          onChange={(e) => setFormData({...formData, condition: e.target.value})}
+          value={formData.tradeMethod}
+          onChange={(e) => setFormData({...formData, tradeMethod: e.target.value})}
           className="w-full p-3 border border-border rounded-lg bg-background text-foreground"
           required
         >
-          <option value="new">New</option>
-          <option value="like-new">Like New</option>
-          <option value="good">Good</option>
-          <option value="fair">Fair</option>
+          <option value="Face-to-face">Face-to-face</option>
+          <option value="Delivery">Delivery</option>
         </select>
       </div>
-      
+      {/* 新增：课程代码 */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Course Code
+        </label>
+        <input
+          type="text"
+          value={formData.courseCode}
+          onChange={(e) => setFormData({...formData, courseCode: e.target.value})}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground"
+          placeholder="e.g. COMP7506"
+        />
+      </div>
+      {/* 新增：地图选点 */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Select Transaction Location (Click on the map to mark)
+        </label>
+        <div className="w-full h-64 rounded-lg overflow-hidden border border-border">
+          {/* @ts-ignore */}
+          <MapContainer
+            center={formData.locationLatLng || { lat: 22.2838, lng: 114.1371 }}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+          >
+            {/* @ts-ignore */}
+            <TileLayer
+              // @ts-ignore
+              attribution='&copy; OpenStreetMap contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <LocationSelector />
+            {formData.locationLatLng && (
+              // @ts-ignore
+              <Marker position={formData.locationLatLng} icon={markerIcon} />
+            )}
+          </MapContainer>
+        </div>
+        {formData.locationLatLng && (
+          <div className="text-xs text-muted-foreground mt-1">
+            Selected: {formData.locationLatLng.lat.toFixed(5)}, {formData.locationLatLng.lng.toFixed(5)}
+          </div>
+        )}
+      </div>
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Add Photos
@@ -339,6 +531,22 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Condition
+        </label>
+        <select
+          value={formData.condition}
+          onChange={(e) => setFormData({...formData, condition: e.target.value})}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground"
+          required
+        >
+          <option value="new">New</option>
+          <option value="like-new">Like New</option>
+          <option value="good">Good</option>
+          <option value="fair">Fair</option>
+        </select>
+      </div>
     </form>
   );
 
@@ -346,7 +554,7 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
     switch (publishType) {
       case 'share':
         return renderShareForm();
-      case 'event':
+      case 'events':
         return renderEventForm();
       case 'marketplace':
         return renderMarketplaceForm();
@@ -394,7 +602,7 @@ const Publish: React.FC<PublishProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
       ) : (
-        renderPublishTypeSelector()
+        !defaultType && renderPublishTypeSelector()
       )}
     </div>
   );

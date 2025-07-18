@@ -1,6 +1,6 @@
 export const chats = [
     {
-      id: 1,
+      id: '1',
       name: 'Sarah Chen',
       avatar: 'SC',
       lastMessage: 'Hey! About tomorrow\'s class schedule...',
@@ -9,7 +9,7 @@ export const chats = [
       unreadCount: 2,
     },
     {
-      id: 2,
+      id: '2',
       name: 'Mike Johnson',
       avatar: 'MJ',
       lastMessage: 'Want to grab coffee this weekend?',
@@ -17,7 +17,7 @@ export const chats = [
       unread: false,
     },
     {
-      id: 3,
+      id: '3',
       name: 'Emma Wilson',
       avatar: 'EW',
       lastMessage: 'Thanks for your help with the assignment!',
@@ -25,7 +25,7 @@ export const chats = [
       unread: false,
     },
     {
-      id: 4,
+      id: '4',
       name: 'David Kim',
       avatar: 'DK',
       lastMessage: 'When is our next group discussion?',
@@ -34,7 +34,7 @@ export const chats = [
       unreadCount: 1,
     },
     {
-      id: 5,
+      id: '5',
       name: 'Lisa Park',
       avatar: 'LP',
       lastMessage: 'The study materials are ready to share.',
@@ -42,7 +42,7 @@ export const chats = [
       unread: false,
     },
     {
-      id: 6,
+      id: '6',
       name: 'Alex Thompson',
       avatar: 'AT',
       lastMessage: 'Great job on the presentation!',
@@ -51,7 +51,7 @@ export const chats = [
       unreadCount: 3,
     },
     {
-      id: 7,
+      id: '7',
       name: 'Rachel Green',
       avatar: 'RG',
       lastMessage: 'Can you send me the notes from today?',
@@ -59,11 +59,27 @@ export const chats = [
       unread: false,
     },
     {
-      id: 8,
+      id: '8',
       name: 'Tom Anderson',
       avatar: 'TA',
       lastMessage: 'Let\'s meet at the library tomorrow.',
       timestamp: '1 day ago',
       unread: false,
+    },
+    {
+      id: 100,
+      type: 'group',
+      name: 'Study Group',
+      avatar: 'SG',
+      members: [
+        { id: 'u1', name: 'Alice', avatar: 'A' },
+        { id: 'u2', name: 'Bob', avatar: 'B' },
+        { id: 'u3', name: 'Charlie', avatar: 'C' },
+        { id: 'current-user', name: 'You', avatar: 'Y' }
+      ],
+      lastMessage: 'Let’s review chapter 3 tonight!',
+      timestamp: '10:00',
+      unread: true,
+      unreadCount: 5,
     },
   ];

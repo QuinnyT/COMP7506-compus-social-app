@@ -6,6 +6,7 @@ import SigninForm from "@/components/ui/signin-form";
 import BottomNav from "@/components/BottomNav";
 import Home from "@/components/pages/Home";
 import Chat from "@/components/pages/Chat";
+import Chatbox from "@/components/pages/Chat/Chatbox";
 import Profile from "@/components/pages/Profile";
 
 import "./globals.css";
@@ -55,6 +56,9 @@ const App = () => {
             />
           </div>
         } />
+        {/* 聊天页面：支持/chat和/chat/:userId */}
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/chat/:userId" element={<Chatbox />} />
       </Routes>
 
       {/* 全局消息提示组件 */}
